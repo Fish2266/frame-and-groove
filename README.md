@@ -5,6 +5,11 @@ and **renamed item textures** that runs entirely in the browser. Draw the art,
 record or generate the audio, and export the matching data pack and resource
 pack — no build step, no account, nothing leaves your machine.
 
+Go to https://fish2266.github.io/frame-and-groove/ to use the tool. 
+
+---
+# How to run it locally
+
 ```bash
 python3 -m http.server 8722 --directory .
 ```
