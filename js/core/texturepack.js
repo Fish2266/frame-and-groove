@@ -142,7 +142,7 @@ export const CORE_TEXTURES = [
      painted to look like it: the chest and the cow come off their entity
      sheets, and the rest are item sprites drawn at size. */
   'entity/chest/normal', 'entity/cow/cow_temperate',
-  'item/painting', 'item/name_tag', 'item/stone_sword', 'item/cow_spawn_egg',
+  'item/painting', 'item/name_tag', 'item/cow_spawn_egg',
 ];
 
 /** Warm the core blocks and every music disc. Around thirty 16×16 PNGs — far

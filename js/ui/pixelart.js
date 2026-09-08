@@ -119,7 +119,7 @@ function bevel(g, s, x, y, w, h, raised = true, thickness = 1) {
    "some brown box"; the real jukebox reads as a jukebox to anybody who has
    played the game for five minutes, which is everybody who will see it.       */
 
-/** A wall with the painting item hung on it, waiting to become artwork. */
+/** A wall with the painting item on it, waiting to become artwork. */
 export function drawEmptyFrame(canvas, size = 96, accent = '#F2B33D') {
   const { g, s } = setup(canvas, size);
 
@@ -128,28 +128,19 @@ export function drawEmptyFrame(canvas, size = 96, accent = '#F2B33D') {
   g.fillStyle = 'rgba(8,10,13,.46)';
   g.fillRect(0, 0, size, size);
 
-  // The nail it hangs from, and the shadow it casts on the bricks.
-  box(g, s, 23, 7, 2, 2, '#2A2A2E');
-  box(g, s, 23, 7, 1, 1, '#7A7A84');
-
   g.save();
   g.shadowColor = 'rgba(0,0,0,.55)';
-  g.shadowBlur = 5 * s;
-  g.shadowOffsetY = 2.5 * s;
-  const ok = sprite(g, s, 'item/painting', 12, 12, 24, 24);
+  g.shadowBlur = 6 * s;
+  g.shadowOffsetY = 3 * s;
+  const ok = sprite(g, s, 'item/painting', 11, 11, 26, 26);
   g.restore();
 
   if (!ok) {
     // The set has not decoded yet — an empty frame still says "painting".
-    box(g, s, 12, 12, 24, 24, '#8A6E42');
-    bevel(g, s, 12, 12, 24, 24, true, 1);
-    box(g, s, 15, 15, 18, 18, '#1A1E22');
+    box(g, s, 11, 11, 26, 26, '#8A6E42');
+    bevel(g, s, 11, 11, 26, 26, true, 1);
+    box(g, s, 14, 14, 20, 20, '#1A1E22');
   }
-
-  // A single stroke of colour, the one thing here that is yours.
-  g.globalAlpha = 0.9;
-  for (let i = 0; i < 7; i++) box(g, s, 17 + i, 30 - i, 1, 1, accent);
-  g.globalAlpha = 1;
 
   return canvas;
 }
@@ -197,104 +188,104 @@ export function drawEmptyJukebox(canvas, size = 96, accent = '#B084F5') {
 }
 
 /* ---- The cow -------------------------------------------------------------
-   The head is one 8×8×6 box at UV (0, 0) on the cow's own entity sheet, so its
-   three visible faces come straight off the texture the game draws with. A
-   whole cow is unreadable at this size; a head is how the game solves the same
-   problem on its spawn eggs.                                                  */
-const COW_HEAD = { u: 0, v: 0, w: 8, h: 8, d: 6 };
+   The head is one 8×8×6 box at UV (0, 0) on the cow's own sheet, and its front
+   face is a complete cow: two eyes, the horns, the pale blaze between them and
+   the shadow where the muzzle sits. That muzzle is a second 6×3×1 box at UV
+   (1, 33), drawn over the lower middle exactly as the model puts it there.
 
-let _cowFaces = null;
-function cowHeadFaces() {
-  if (_cowFaces) return _cowFaces;
-  const tex = textureCanvasSync('entity/cow/cow_temperate');
+   An earlier version of this drew the head as an isometric cube, which put the
+   ear on the face you could see and hid the face round the back. Head on is
+   both the truer picture and the one that reads at a hundred pixels.          */
+const COW_FACE  = [6, 6, 8, 8];     // head cube, +Z face
+const COW_MUZZLE = [2, 34, 6, 3];   // muzzle cube, +Z face
+const MUZZLE_AT = [1, 5];           // where it sits inside the 8×8 face
+
+function cutTexture(name, x, y, w, h) {
+  const tex = textureCanvasSync(name);
   if (!tex) return null;
-  const { u, v, w, h, d } = COW_HEAD;
-  const cut = (x, y, cw, ch) => {
-    const c = document.createElement('canvas');
-    c.width = cw; c.height = ch;
-    const cg = c.getContext('2d');
-    cg.imageSmoothingEnabled = false;
-    cg.drawImage(tex, x, y, cw, ch, 0, 0, cw, ch);
-    return c;
-  };
-  /* The standard Minecraft box unwrap: up sits at (u+d, v), the front face at
-     (u+d, v+d), and the side before it at (u, v+d). */
-  _cowFaces = {
-    top:   cut(u + d, v, w, d),
-    front: cut(u + d, v + d, w, h),
-    side:  cut(u, v + d, d, h),
-  };
-  return _cowFaces;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.drawImage(tex, x, y, w, h, 0, 0, w, h);
+  return c;
 }
 
-/** A cow's head on a patch of grass — the mobs section, at a glance. */
+/** A cow looking at you, over a patch of grass. */
 export function drawEmptyMob(canvas, size = 96, accent = '#5FC9E8') {
   const { g, s } = setup(canvas, size);
 
-  // A strip of ground, so the head is standing somewhere rather than floating.
   texBox(g, s, 0, 32, GRID, 16, 'grass', { zoom: 0.5, tint: '#79C05A' });
   g.fillStyle = 'rgba(8,10,13,.34)';
   g.fillRect(0, Math.round(32 * s), size, Math.round(16 * s));
 
-  contactShadow(g, s, 24, 35, 14, 4.5, 0.5);
+  const face = cutTexture('entity/cow/cow_temperate', ...COW_FACE);
+  const muzzle = cutTexture('entity/cow/cow_temperate', ...COW_MUZZLE);
 
-  const faces = cowHeadFaces();
-  if (faces) {
-    isoBlock(g, 24 * s, 10 * s, 12 * s, { top: faces.top, left: faces.side, right: faces.front });
-  } else {
-    // No entity sheet yet — the spawn egg says the same thing.
-    if (!sprite(g, s, 'item/cow_spawn_egg', 16, 14, 16, 16)) {
-      box(g, s, 15, 14, 18, 18, '#6B4B2E');
-      bevel(g, s, 15, 14, 18, 18, true, 1);
+  // 8 texture pixels across 26 of the grid: a whole 3.25× — near enough that
+  // nothing shimmers, and big enough that the eyes read.
+  const D = 26, X = (GRID - D) / 2, Y = 8;
+  const unit = D / 8;
+
+  contactShadow(g, s, 24, 35, 13, 4, 0.5);
+
+  if (face) {
+    g.save();
+    g.shadowColor = 'rgba(0,0,0,.5)';
+    g.shadowBlur = 5 * s;
+    g.shadowOffsetY = 3 * s;
+    g.imageSmoothingEnabled = false;
+    g.drawImage(face, Math.round(X * s), Math.round(Y * s), Math.round(D * s), Math.round(D * s));
+    g.restore();
+    if (muzzle) {
+      g.imageSmoothingEnabled = false;
+      g.drawImage(muzzle,
+        Math.round((X + MUZZLE_AT[0] * unit) * s),
+        Math.round((Y + MUZZLE_AT[1] * unit) * s),
+        Math.round(6 * unit * s), Math.round(3 * unit * s));
     }
+  } else if (!sprite(g, s, 'item/cow_spawn_egg', 16, 14, 16, 16)) {
+    box(g, s, X, Y, D, D, '#6B4B2E');
+    bevel(g, s, X, Y, D, D, true, 1);
   }
 
-  // A glimmer, the same note the other scenes end on.
   g.globalAlpha = 0.85;
-  box(g, s, 9, 10, 1, 1, accent);
-  box(g, s, 39, 14, 1, 1, accent);
+  box(g, s, 7, 12, 1, 1, accent);
+  box(g, s, 41, 17, 1, 1, accent);
   g.globalAlpha = 0.5;
-  box(g, s, 33, 6, 1, 1, accent);
+  box(g, s, 38, 8, 1, 1, accent);
   g.globalAlpha = 1;
 
   return canvas;
 }
 
-/** A name tag beside a sword — rename the one, retexture the other. */
+/** A name tag on a slab of deepslate — the whole feature in one object. */
 export function drawEmptyNameTag(canvas, size = 96, accent = '#E8896B') {
   const { g, s } = setup(canvas, size);
 
-  // A worktop, with the wall above it left dark so the items carry the frame.
-  texBox(g, s, 0, 31, GRID, 17, 'stoneBricks', { zoom: 0.5 });
-  g.fillStyle = 'rgba(8,10,13,.46)';
-  g.fillRect(0, Math.round(31 * s), size, Math.round(17 * s));
-  box(g, s, 0, 31, GRID, 1, 'rgba(255,255,255,.07)');
+  /* A flat surface rather than a wall with a ledge: the vanilla name tag
+     sprite is drawn on the diagonal, and anything with a horizon in it ends up
+     looking like the tag has been stabbed into the shelf. Deepslate also
+     leaves the tan of the tag somewhere to stand out against, which stone
+     bricks — already the backdrop for the paintings — do not. */
+  texBox(g, s, 0, 0, GRID, GRID, 'deepslate', { zoom: 0.5 });
+  g.fillStyle = 'rgba(8,10,13,.42)';
+  g.fillRect(0, 0, size, size);
 
-  /* The sword sits behind and dimmed: it is the thing being retextured, not
-     the subject. The tag in front is the mechanism, so it gets full strength. */
-  contactShadow(g, s, 32, 30, 9, 3.2, 0.42);
-  sprite(g, s, 'item/stone_sword', 24, 10, 19, 19, { alpha: 0.5 });
+  contactShadow(g, s, 24, 33, 15, 5, 0.45);
 
-  contactShadow(g, s, 18, 33, 12, 4, 0.55);
   g.save();
-  g.shadowColor = 'rgba(0,0,0,.5)';
-  g.shadowBlur = 4 * s;
-  g.shadowOffsetY = 2 * s;
-  const ok = sprite(g, s, 'item/name_tag', 7, 14, 22, 22);
+  g.shadowColor = 'rgba(0,0,0,.55)';
+  g.shadowBlur = 6 * s;
+  g.shadowOffsetY = 3 * s;
+  const ok = sprite(g, s, 'item/name_tag', 10, 10, 28, 28);
   g.restore();
 
   if (!ok) {
-    box(g, s, 9, 20, 18, 11, '#C9B78E');
-    bevel(g, s, 9, 20, 18, 11, true, 1);
-    box(g, s, 13, 24, 10, 1, accent);
+    box(g, s, 12, 17, 24, 14, '#C9B78E');
+    bevel(g, s, 12, 17, 24, 14, true, 1);
+    box(g, s, 17, 22, 14, 1, accent);
   }
-
-  // The name itself, suggested rather than spelled out.
-  g.globalAlpha = 0.85;
-  box(g, s, 30, 36, 9, 1, accent);
-  g.globalAlpha = 0.45;
-  box(g, s, 30, 39, 6, 1, accent);
-  g.globalAlpha = 1;
 
   return canvas;
 }
