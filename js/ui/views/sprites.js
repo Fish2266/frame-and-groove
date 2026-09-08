@@ -133,7 +133,7 @@ export function buildSpritesView() {
     if (!sprites().length) {
       clear(host).appendChild(h('.grow.center',
         emptyState({
-          scene: 'chest', iconName: 'sparkle',
+          scene: 'nametag', iconName: 'sparkle',
           title: 'Name it, and it changes',
           message: supported
             ? 'Pick any flat item, draw it again, and give it a name. Call one that in an anvil and it wears your texture — every other one in the world is untouched.'

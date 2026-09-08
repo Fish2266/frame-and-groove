@@ -18,6 +18,7 @@ const GAME_BLOCK = {
   oak: 'block/oak_planks',
   darkOak: 'block/dark_oak_planks',
   grass: 'block/grass_block_top',
+  stoneBricks: 'block/stone_bricks',
 };
 import { discFaceCanvas } from '../disc/sprite.js';
 import { hasTexture, listTextures, textureCanvasSync } from '../core/texturepack.js';
@@ -50,6 +51,58 @@ function texBox(g, s, x, y, w, h, name, opts = {}) {
   g.fillStyle = pat;
   g.fillRect(0, 0, (w / (opts.zoom || 0.5)), (h / (opts.zoom || 0.5)));
   g.restore();
+
+  /* Some of the game's textures ship greyscale and are coloured at runtime —
+     grass is the obvious one, which is why an untinted grass block looks like
+     stone. Multiply is what the game does, so it is what happens here. */
+  if (opts.tint) {
+    g.save();
+    g.beginPath();
+    g.rect(Math.round(x * s), Math.round(y * s), Math.round(w * s), Math.round(h * s));
+    g.clip();
+    g.globalCompositeOperation = 'multiply';
+    g.globalAlpha = opts.tintAmount ?? 1;
+    g.fillStyle = opts.tint;
+    g.fillRect(Math.round(x * s), Math.round(y * s), Math.round(w * s), Math.round(h * s));
+    g.restore();
+  }
+}
+
+/**
+ * Draw a real texture into the logical grid, nearest-neighbour.
+ *
+ * This is the one that matters for the empty states: an item sprite the game
+ * ships is instantly recognisable in a way a hand-drawn approximation of it
+ * never is, and it is already sitting in the bundled set.
+ */
+function sprite(g, s, name, x, y, w, h, { alpha = 1, flip = false } = {}) {
+  const tex = textureCanvasSync(name);
+  if (!tex) return false;
+  g.save();
+  g.imageSmoothingEnabled = false;
+  g.globalAlpha = alpha;
+  const dx = Math.round(x * s), dy = Math.round(y * s);
+  const dw = Math.round(w * s), dh = Math.round(h * s);
+  if (flip) { g.translate(dx + dw, dy); g.scale(-1, 1); g.drawImage(tex, 0, 0, dw, dh); }
+  else g.drawImage(tex, dx, dy, dw, dh);
+  g.restore();
+  return true;
+}
+
+/** A soft ellipse of shadow, so an object sits on the ground instead of over it. */
+function contactShadow(g, s, cx, cy, rx, ry = rx * 0.36, strength = 0.5) {
+  const grad = g.createRadialGradient(cx * s, cy * s, 0, cx * s, cy * s, rx * s);
+  grad.addColorStop(0, `rgba(0,0,0,${strength})`);
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  g.save();
+  g.translate(cx * s, cy * s);
+  g.scale(1, ry / rx);
+  g.translate(-cx * s, -cy * s);
+  g.fillStyle = grad;
+  g.beginPath();
+  g.arc(cx * s, cy * s, rx * s, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
 }
 
 /** The three-tone edge that makes a Minecraft block read as solid. */
@@ -60,83 +113,187 @@ function bevel(g, s, x, y, w, h, raised = true, thickness = 1) {
 
 /* ========================================================================= */
 
-/** An empty oak frame on a stone wall, waiting for a painting. */
+/* ---- The four content sections ----------------------------------------- *
+   Each of these is built from textures the game ships rather than from boxes
+   painted to look like them. A hand-drawn approximation of a jukebox reads as
+   "some brown box"; the real jukebox reads as a jukebox to anybody who has
+   played the game for five minutes, which is everybody who will see it.       */
+
+/** A wall with the painting item hung on it, waiting to become artwork. */
 export function drawEmptyFrame(canvas, size = 96, accent = '#F2B33D') {
   const { g, s } = setup(canvas, size);
 
-  texBox(g, s, 0, 0, GRID, GRID, 'stone', { zoom: 0.5 });
-  g.fillStyle = 'rgba(0,0,0,.28)';
+  // Stone-brick wall, dimmed so the item is what the eye lands on.
+  texBox(g, s, 0, 0, GRID, GRID, 'stoneBricks', { zoom: 0.5 });
+  g.fillStyle = 'rgba(8,10,13,.46)';
   g.fillRect(0, 0, size, size);
 
-  // Nail and its shadow
-  box(g, s, 23, 6, 2, 2, '#3A3A3E');
-  box(g, s, 23, 6, 1, 1, '#6E6E76');
+  // The nail it hangs from, and the shadow it casts on the bricks.
+  box(g, s, 23, 7, 2, 2, '#2A2A2E');
+  box(g, s, 23, 7, 1, 1, '#7A7A84');
 
-  // Frame body
-  const fx = 9, fy = 11, fw = 30, fh = 26;
   g.save();
-  g.shadowColor = 'rgba(0,0,0,.45)';
-  g.shadowBlur = 6 * s; g.shadowOffsetY = 2 * s;
-  box(g, s, fx, fy, fw, fh, '#8A6E42');
+  g.shadowColor = 'rgba(0,0,0,.55)';
+  g.shadowBlur = 5 * s;
+  g.shadowOffsetY = 2.5 * s;
+  const ok = sprite(g, s, 'item/painting', 12, 12, 24, 24);
   g.restore();
-  texBox(g, s, fx, fy, fw, fh, 'oak', { zoom: 0.5 });
-  bevel(g, s, fx, fy, fw, fh, true, 1);
 
-  // Canvas well
-  box(g, s, fx + 3, fy + 3, fw - 6, fh - 6, '#1A1E22');
-  bevel(g, s, fx + 3, fy + 3, fw - 6, fh - 6, false, 1);
+  if (!ok) {
+    // The set has not decoded yet — an empty frame still says "painting".
+    box(g, s, 12, 12, 24, 24, '#8A6E42');
+    bevel(g, s, 12, 12, 24, 24, true, 1);
+    box(g, s, 15, 15, 18, 18, '#1A1E22');
+  }
 
-  // A single hopeful brush stroke
-  g.fillStyle = accent;
-  g.globalAlpha = 0.85;
-  for (let i = 0; i < 9; i++) box(g, s, fx + 8 + i, fy + 18 - i, 1, 1, accent);
+  // A single stroke of colour, the one thing here that is yours.
+  g.globalAlpha = 0.9;
+  for (let i = 0; i < 7; i++) box(g, s, 17 + i, 30 - i, 1, 1, accent);
   g.globalAlpha = 1;
 
   return canvas;
 }
 
-/** A jukebox with a record and a couple of notes drifting off. */
+/** A jukebox with a disc hovering over it, ready to drop in. */
 export function drawEmptyJukebox(canvas, size = 96, accent = '#B084F5') {
   const { g, s } = setup(canvas, size);
 
-  // Ground and sky
-  box(g, s, 0, 0, GRID, 30, 'rgba(0,0,0,0)');
-  texBox(g, s, 0, 30, GRID, 18, 'grass', { zoom: 0.5 });
-  g.fillStyle = 'rgba(0,0,0,.30)';
-  g.fillRect(0, Math.round(30 * s), size, Math.round(18 * s));
+  const top = textureCanvasSync('block/jukebox_top');
+  const side = textureCanvasSync('block/jukebox_side');
 
-  // Jukebox body
-  const bx = 13, by = 16, bw = 22, bh = 20;
+  contactShadow(g, s, 24, 36, 15, 5, 0.5);
+
+  if (top && side) {
+    isoBlock(g, 24 * s, 18 * s, 12 * s, { top, left: side, right: side });
+  } else {
+    box(g, s, 12, 16, 24, 20, '#59391F');
+    texBox(g, s, 12, 16, 24, 20, 'oak', { zoom: 0.5 });
+    bevel(g, s, 12, 16, 24, 20, true, 1);
+  }
+
+  // The disc, floating just above the slot with its own small shadow.
+  g.save();
+  g.shadowColor = 'rgba(0,0,0,.45)';
+  g.shadowBlur = 4 * s;
+  g.shadowOffsetY = 2 * s;
+  const ok = sprite(g, s, 'item/music_disc_13', 16, 2, 16, 16);
+  g.restore();
+
+  if (!ok) {
+    g.beginPath(); g.arc(24 * s, 10 * s, 6 * s, 0, Math.PI * 2);
+    g.fillStyle = '#1B1B20'; g.fill();
+    g.beginPath(); g.arc(24 * s, 10 * s, 2.4 * s, 0, Math.PI * 2);
+    g.fillStyle = accent; g.fill();
+  }
+
+  // Two notes drifting off, in the section's colour.
+  g.globalAlpha = 0.85;
+  box(g, s, 38, 12, 2, 2, accent); box(g, s, 39, 8, 1, 5, accent); box(g, s, 39, 8, 3, 1, accent);
+  g.globalAlpha = 0.5;
+  box(g, s, 7, 16, 2, 2, accent); box(g, s, 8, 13, 1, 4, accent);
+  g.globalAlpha = 1;
+
+  return canvas;
+}
+
+/* ---- The cow -------------------------------------------------------------
+   The head is one 8×8×6 box at UV (0, 0) on the cow's own entity sheet, so its
+   three visible faces come straight off the texture the game draws with. A
+   whole cow is unreadable at this size; a head is how the game solves the same
+   problem on its spawn eggs.                                                  */
+const COW_HEAD = { u: 0, v: 0, w: 8, h: 8, d: 6 };
+
+let _cowFaces = null;
+function cowHeadFaces() {
+  if (_cowFaces) return _cowFaces;
+  const tex = textureCanvasSync('entity/cow/cow_temperate');
+  if (!tex) return null;
+  const { u, v, w, h, d } = COW_HEAD;
+  const cut = (x, y, cw, ch) => {
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const cg = c.getContext('2d');
+    cg.imageSmoothingEnabled = false;
+    cg.drawImage(tex, x, y, cw, ch, 0, 0, cw, ch);
+    return c;
+  };
+  /* The standard Minecraft box unwrap: up sits at (u+d, v), the front face at
+     (u+d, v+d), and the side before it at (u, v+d). */
+  _cowFaces = {
+    top:   cut(u + d, v, w, d),
+    front: cut(u + d, v + d, w, h),
+    side:  cut(u, v + d, d, h),
+  };
+  return _cowFaces;
+}
+
+/** A cow's head on a patch of grass — the mobs section, at a glance. */
+export function drawEmptyMob(canvas, size = 96, accent = '#5FC9E8') {
+  const { g, s } = setup(canvas, size);
+
+  // A strip of ground, so the head is standing somewhere rather than floating.
+  texBox(g, s, 0, 32, GRID, 16, 'grass', { zoom: 0.5, tint: '#79C05A' });
+  g.fillStyle = 'rgba(8,10,13,.34)';
+  g.fillRect(0, Math.round(32 * s), size, Math.round(16 * s));
+
+  contactShadow(g, s, 24, 35, 14, 4.5, 0.5);
+
+  const faces = cowHeadFaces();
+  if (faces) {
+    isoBlock(g, 24 * s, 10 * s, 12 * s, { top: faces.top, left: faces.side, right: faces.front });
+  } else {
+    // No entity sheet yet — the spawn egg says the same thing.
+    if (!sprite(g, s, 'item/cow_spawn_egg', 16, 14, 16, 16)) {
+      box(g, s, 15, 14, 18, 18, '#6B4B2E');
+      bevel(g, s, 15, 14, 18, 18, true, 1);
+    }
+  }
+
+  // A glimmer, the same note the other scenes end on.
+  g.globalAlpha = 0.85;
+  box(g, s, 9, 10, 1, 1, accent);
+  box(g, s, 39, 14, 1, 1, accent);
+  g.globalAlpha = 0.5;
+  box(g, s, 33, 6, 1, 1, accent);
+  g.globalAlpha = 1;
+
+  return canvas;
+}
+
+/** A name tag beside a sword — rename the one, retexture the other. */
+export function drawEmptyNameTag(canvas, size = 96, accent = '#E8896B') {
+  const { g, s } = setup(canvas, size);
+
+  // A worktop, with the wall above it left dark so the items carry the frame.
+  texBox(g, s, 0, 31, GRID, 17, 'stoneBricks', { zoom: 0.5 });
+  g.fillStyle = 'rgba(8,10,13,.46)';
+  g.fillRect(0, Math.round(31 * s), size, Math.round(17 * s));
+  box(g, s, 0, 31, GRID, 1, 'rgba(255,255,255,.07)');
+
+  /* The sword sits behind and dimmed: it is the thing being retextured, not
+     the subject. The tag in front is the mechanism, so it gets full strength. */
+  contactShadow(g, s, 32, 30, 9, 3.2, 0.42);
+  sprite(g, s, 'item/stone_sword', 24, 10, 19, 19, { alpha: 0.5 });
+
+  contactShadow(g, s, 18, 33, 12, 4, 0.55);
   g.save();
   g.shadowColor = 'rgba(0,0,0,.5)';
-  g.shadowBlur = 6 * s; g.shadowOffsetY = 2 * s;
-  box(g, s, bx, by, bw, bh, '#59391F');
+  g.shadowBlur = 4 * s;
+  g.shadowOffsetY = 2 * s;
+  const ok = sprite(g, s, 'item/name_tag', 7, 14, 22, 22);
   g.restore();
-  texBox(g, s, bx, by, bw, bh, 'oak', { zoom: 0.5, tint: '#4A2F19', tintAmount: 0.5 });
-  bevel(g, s, bx, by, bw, bh, true, 1);
 
-  // Speaker grille
-  box(g, s, bx + 4, by + 11, bw - 8, 6, '#2C1B0E');
-  for (let i = 0; i < 7; i++) box(g, s, bx + 5 + i * 2, by + 12, 1, 4, '#7A5133');
+  if (!ok) {
+    box(g, s, 9, 20, 18, 11, '#C9B78E');
+    bevel(g, s, 9, 20, 18, 11, true, 1);
+    box(g, s, 13, 24, 10, 1, accent);
+  }
 
-  // The record on top
-  const cx = bx + bw / 2, cy = by + 5;
-  g.beginPath();
-  g.arc(cx * s, cy * s, 4.5 * s, 0, Math.PI * 2);
-  g.fillStyle = '#1B1B20'; g.fill();
-  g.beginPath();
-  g.arc(cx * s, cy * s, 2 * s, 0, Math.PI * 2);
-  g.fillStyle = accent; g.fill();
-  g.beginPath();
-  g.arc(cx * s, cy * s, 0.6 * s, 0, Math.PI * 2);
-  g.fillStyle = '#0E0E12'; g.fill();
-
-  // Notes
-  g.fillStyle = accent;
-  g.globalAlpha = 0.9;
-  box(g, s, 37, 9, 2, 2, accent); box(g, s, 38, 5, 1, 5, accent); box(g, s, 38, 5, 3, 1, accent);
-  g.globalAlpha = 0.55;
-  box(g, s, 8, 13, 2, 2, accent); box(g, s, 9, 10, 1, 4, accent);
+  // The name itself, suggested rather than spelled out.
+  g.globalAlpha = 0.85;
+  box(g, s, 30, 36, 9, 1, accent);
+  g.globalAlpha = 0.45;
+  box(g, s, 30, 39, 6, 1, accent);
   g.globalAlpha = 1;
 
   return canvas;
@@ -269,8 +426,25 @@ export function drawEmptyGlass(canvas, size = 96, accent = '#4FD8DE') {
 export const SCENES = {
   frame: drawEmptyFrame,
   jukebox: drawEmptyJukebox,
+  mob: drawEmptyMob,
+  nametag: drawEmptyNameTag,
   chest: drawEmptyChest,
   glass: drawEmptyGlass,
+};
+
+/**
+ * The colour each scene glimmers in — the same one its section wears in the
+ * rail. Reading --accent instead would tint Mobs and Items green, because only
+ * Art and Music currently scope an accent of their own, and a cyan section
+ * with a green spark on its empty screen looks like a mistake.
+ */
+const SCENE_ACCENT = {
+  frame:   '#F2B33D',
+  jukebox: '#B084F5',
+  mob:     '#5FC9E8',
+  nametag: '#E8896B',
+  chest:   '#3FD98B',
+  glass:   '#4FD8DE',
 };
 
 /**
@@ -283,8 +457,7 @@ export function scene(name, size = 96, accent) {
   const c = document.createElement('canvas');
   c.style.width = size + 'px';
   c.style.height = size + 'px';
-  const cssAccent = accent || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  fn(c, size * Math.min(2, window.devicePixelRatio || 1), cssAccent || undefined);
+  fn(c, size * Math.min(2, window.devicePixelRatio || 1), accent || SCENE_ACCENT[name]);
   return c;
 }
 

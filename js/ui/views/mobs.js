@@ -220,7 +220,7 @@ export function buildMobsView() {
     if (!p.mobs.length) {
       clear(host).appendChild(h('.grow.center',
         emptyState({
-          scene: 'chest', iconName: 'sparkle',
+          scene: 'mob', iconName: 'sparkle',
           title: 'Make a mob your own',
           message: v.features.includes(F.MOB_VARIANTS)
             ? 'Pick a mob, paint it, and choose the biomes it turns up in. Nothing vanilla is replaced.'

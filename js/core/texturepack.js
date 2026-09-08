@@ -137,9 +137,12 @@ export const CORE_TEXTURES = [
   'block/grass_block_top', 'block/grass_block_side', 'block/grass_block_side_overlay',
   'block/jukebox_side', 'block/jukebox_top',
   'block/note_block', 'block/oxidized_copper',
-  /* The empty-state chest is drawn from the real chest entity sheet rather
-     than from planks and a hand-drawn latch. */
-  'entity/chest/normal',
+  'block/stone_bricks',
+  /* The empty states are built from the game's own art rather than from boxes
+     painted to look like it: the chest and the cow come off their entity
+     sheets, and the rest are item sprites drawn at size. */
+  'entity/chest/normal', 'entity/cow/cow_temperate',
+  'item/painting', 'item/name_tag', 'item/stone_sword', 'item/cow_spawn_egg',
 ];
 
 /** Warm the core blocks and every music disc. Around thirty 16×16 PNGs — far
