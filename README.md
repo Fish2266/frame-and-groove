@@ -8,7 +8,7 @@ pack — no build step, no account, nothing leaves your machine.
 Go to https://fish2266.github.io/frame-and-groove/ to use the tool. 
 
 ---
-# How to run it locally
+## How to run it locally
 
 ```bash
 python3 -m http.server 8722 --directory .
