@@ -10,6 +10,8 @@
    size, and every size is an integer multiple of 16 so the pixels never blur.
    ========================================================================= */
 
+import { overrideArt, blitArt } from './pixelart-overrides.js';
+
 const G = 16;   // logical grid
 
 const PAL = {
@@ -44,6 +46,10 @@ export function drawMark(canvas, size = 64, o = {}) {
   const g = canvas.getContext('2d');
   g.imageSmoothingEnabled = false;
   g.clearRect(0, 0, px, px);
+
+  // A hand-drawn mark replaces the computed one wholesale.
+  const hand = overrideArt('mark');
+  if (hand) { blitArt(g, hand, scale); return canvas; }
 
   const set = (x, y, color) => {
     if (x < 0 || y < 0 || x >= G || y >= G) return;

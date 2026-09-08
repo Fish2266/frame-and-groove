@@ -11,6 +11,8 @@
    is no counting.
    ========================================================================= */
 
+import { overrideArt, blitArt } from './pixelart-overrides.js';
+
 const G = 16;
 
 /* One palette, themed per icon family. `a`/`A` are the accent, so a selected
@@ -217,6 +219,10 @@ export function pixIcon(name, scale = 2, o = {}) {
   c.style.height = (G * scale) + 'px';
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
+  /* A hand-drawn version wins over the code. It carries its own colours, so
+     the accent no longer applies — see pixelart-overrides.js. */
+  const hand = overrideArt(`icon:${name}`);
+  if (hand) { blitArt(g, hand, scale); return c; }
   const P = palette(o.accent, o.accentLight);
   const fn = ICONS[name];
   if (fn) fn(pen(g, scale, P));

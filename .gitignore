@@ -5,4 +5,10 @@
 .devserver.py
 .claude/
 
+# The icon studio is a private editor for the app's own art. It reaches into
+# js/ and would be served like any other page, so it stays off the repo and
+# therefore off the published site. What it produces —
+# js/ui/pixelart-overrides.js — is committed; the tool that made it is not.
+tools/
+
 # Nothing here is built, so there is no build output to ignore.
