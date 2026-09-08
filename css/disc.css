@@ -1,0 +1,322 @@
+/* ============================================================================
+   FRAME & GROOVE — Disc studio: audio, waveform, sprite forge
+   ========================================================================= */
+
+.disc-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.disc-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--s-5) var(--s-6) var(--s-10); }
+.disc-cols { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: var(--s-5); align-items: start; }
+@media (max-width: 1120px) { .disc-cols { grid-template-columns: minmax(0, 1fr); } }
+
+/* ======================= HERO / TRANSPORT ============================== */
+.disc-hero {
+  display: flex; gap: var(--s-5); align-items: center;
+  padding: var(--s-5);
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(140% 120% at 12% 0%, color-mix(in srgb, var(--disc-accent) 16%, transparent), transparent 58%),
+    var(--surface-1);
+  box-shadow: var(--bevel), 0 0 0 1px var(--line-hair), var(--sh-2);
+  position: relative; overflow: hidden;
+}
+
+/* The spinning record. Pure CSS + a canvas face. */
+.vinyl {
+  width: 132px; height: 132px; flex: none; position: relative;
+  border-radius: 50%;
+  box-shadow: 0 12px 34px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.05);
+  background: #16181b;
+  display: grid; place-items: center;
+  transition: transform var(--d-slow) var(--ease-out);
+}
+.vinyl canvas { width: 100%; height: 100%; border-radius: 50%; }
+.vinyl .v-spin { position: absolute; inset: 0; border-radius: 50%; animation: fg-spin 3.6s linear infinite; animation-play-state: paused; }
+.vinyl[data-playing="true"] .v-spin { animation-play-state: running; }
+.vinyl::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(128deg, rgba(255,255,255,.16), transparent 34%, transparent 62%, rgba(255,255,255,.07));
+  pointer-events: none;
+}
+.hero-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.hero-title-row { display: flex; align-items: baseline; gap: var(--s-2); }
+.hero-title { font-size: var(--t-21); font-weight: var(--w-bold); letter-spacing: var(--tr-tighter); }
+
+.transport { display: flex; align-items: center; gap: var(--s-3); }
+.play-btn {
+  width: 44px; height: 44px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--disc-accent) 92%, white 8%), var(--disc-accent));
+  color: #140A22;
+  box-shadow: var(--bevel-hi), var(--sh-3), 0 0 0 1px color-mix(in srgb, var(--disc-accent) 50%, transparent);
+  transition: transform var(--d-fast) var(--ease-spring), box-shadow var(--d-fast) var(--ease-out);
+}
+.play-btn:hover { transform: scale(1.06); box-shadow: var(--bevel-hi), var(--sh-4), 0 0 22px color-mix(in srgb, var(--disc-accent) 40%, transparent); }
+.play-btn:active { transform: scale(.97); }
+.play-btn:disabled { opacity: .35; pointer-events: none; }
+
+.time-readout { font-family: var(--f-mono); font-size: var(--t-12); color: var(--text-2); font-variant-numeric: tabular-nums; min-width: 92px; }
+.time-readout .t-sep { color: var(--text-4); }
+
+/* ======================= WAVEFORM ====================================== */
+.wave-shell {
+  position: relative; border-radius: var(--r-md); overflow: hidden;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
+  height: 108px; cursor: pointer;
+  touch-action: none;
+}
+.wave-shell canvas { width: 100%; height: 100%; image-rendering: auto; }
+.wave-shell .w-playhead {
+  position: absolute; top: 0; bottom: 0; width: 1.5px;
+  background: var(--text-1); box-shadow: 0 0 8px var(--text-1);
+  pointer-events: none; z-index: 3;
+}
+.wave-shell .w-playhead::before {
+  content: ""; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text-1);
+}
+.wave-shell .w-region {
+  position: absolute; top: 0; bottom: 0; z-index: 2;
+  background: color-mix(in srgb, var(--disc-accent) 13%, transparent);
+  border-left: 2px solid var(--disc-accent);
+  border-right: 2px solid var(--disc-accent);
+  pointer-events: none;
+}
+.wave-shell .w-mask { position: absolute; top: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 1; pointer-events: none; }
+.wave-handle {
+  position: absolute; top: 0; bottom: 0; width: 12px; z-index: 4;
+  cursor: ew-resize; display: grid; place-items: center;
+}
+.wave-handle::after {
+  content: ""; width: 3px; height: 26px; border-radius: 2px;
+  background: var(--disc-accent); box-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+.wave-empty {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--text-4); font-size: var(--t-12); pointer-events: none;
+}
+
+/* ======================= RECORDER ====================================== */
+.rec-orb {
+  width: 64px; height: 64px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; position: relative;
+  background: var(--surface-3); color: var(--danger);
+  box-shadow: var(--bevel), var(--sh-2);
+  transition: all var(--d-base) var(--ease-out);
+}
+.rec-orb:hover { background: var(--surface-4); transform: scale(1.04); }
+.rec-orb[data-armed="true"] { background: var(--danger); color: #fff; }
+.rec-orb[data-armed="true"]::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid var(--danger); opacity: .55;
+  animation: fg-rec-ring 1.5s var(--ease-out) infinite;
+}
+@keyframes fg-rec-ring { 0% { transform: scale(.9); opacity: .6 } 100% { transform: scale(1.28); opacity: 0 } }
+
+.level-meter {
+  height: 6px; border-radius: var(--r-full); overflow: hidden;
+  background: var(--surface-3); position: relative;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.3);
+}
+.level-meter .lm-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--ok) 0%, var(--ok) 62%, var(--warn) 82%, var(--danger) 100%);
+  transition: width 60ms linear;
+}
+.mic-bars { display: flex; align-items: flex-end; gap: 2px; height: 34px; }
+.mic-bars i {
+  width: 3px; border-radius: 2px; background: var(--disc-accent);
+  height: 10%; transition: height 70ms var(--ease-out); display: block;
+}
+
+/* ======================= DISC SPRITE FORGE ============================= */
+.forge { display: flex; flex-direction: column; gap: var(--s-4); }
+
+.disc-preview-stack {
+  display: flex; align-items: center; gap: var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
+}
+.disc-zoom {
+  border-radius: var(--r-md); overflow: hidden;
+  box-shadow: 0 0 0 1px var(--line-hair), var(--sh-2);
+  flex: none;
+}
+.disc-zoom canvas { display: block; }
+
+/* Inventory-slot mock */
+.slot-mock {
+  width: 54px; height: 54px; flex: none;
+  display: grid; place-items: center;
+  background: #8B8B8B;
+  box-shadow:
+    inset 2px 2px 0 0 #373737,
+    inset -2px -2px 0 0 #FFFFFF,
+    0 2px 6px rgba(0,0,0,.4);
+  position: relative;
+}
+.slot-mock canvas { width: 40px; height: 40px; }
+/* Minecraft-style tooltip mock */
+.mc-tooltip {
+  padding: 5px 7px; position: relative;
+  background: #100010F0;
+  box-shadow: 0 0 0 1px #100010, inset 0 0 0 1px #5000FF44;
+  border-radius: 1px;
+  font-family: var(--f-mono); font-size: var(--t-11); line-height: 1.5;
+  min-width: 130px;
+}
+.mc-tooltip .mt-name { color: #FFFFFF; }
+.mc-tooltip .mt-line { color: #AAAAAA; }
+.mc-tooltip .mt-rare  { color: #55FFFF; }
+.mc-tooltip .mt-epic  { color: #FF55FF; }
+.mc-tooltip .mt-unc   { color: #55FF55; }
+.mc-tooltip .mt-id    { color: #555555; }
+
+/* Jukebox scene — an isometric block render on a canvas */
+.jukebox-scene {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 1px var(--line-hair), var(--sh-1);
+  image-rendering: pixelated;
+}
+
+/* Sprite template swatch rows */
+.part-row {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding: var(--s-1) 0;
+}
+.part-row .pr-name { flex: 1; font-size: var(--t-12); color: var(--text-2); }
+.part-row .pr-hex { font-family: var(--f-mono); font-size: var(--t-10); color: var(--text-4); }
+
+.template-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); }
+.template-opt {
+  aspect-ratio: 1; border-radius: var(--r-md);
+  background: var(--bg-sunken); box-shadow: inset 0 0 0 1px var(--line-hair);
+  display: grid; place-items: center; cursor: pointer; overflow: hidden;
+  transition: all var(--d-fast) var(--ease-out);
+  position: relative;
+}
+.template-opt canvas { width: 76%; height: 76%; }
+.template-opt:hover { box-shadow: inset 0 0 0 1px var(--line-strong); background: var(--surface-2); }
+.template-opt[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--bg-sunken)); }
+.template-opt .to-name {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  font-size: 8px; text-align: center; padding: 2px 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.6));
+  color: rgba(255,255,255,.85); letter-spacing: var(--tr-wide); text-transform: uppercase;
+}
+
+/* Palette harmony strip for auto-recolour */
+.harmony-strip { display: flex; gap: 3px; height: 26px; border-radius: var(--r-sm); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line-hair); }
+.harmony-strip i { flex: 1; display: block; }
+
+/* ======================= AUDIO ENGINE CARD ============================= */
+.engine-card[data-state="ready"]   .engine-dot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.engine-card[data-state="error"]   .engine-dot { background: var(--danger); }
+
+/* ======================= DISC LIST ROW ================================= */
+.disc-row-art { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px var(--line-hair); flex: none; }
+.disc-row-art canvas { width: 100%; height: 100%; }
+
+/* ======================= COMPARATOR DIAL ============================== */
+.comparator {
+  display: flex; align-items: flex-end; gap: 2px; height: 30px;
+}
+.comparator i {
+  flex: 1; border-radius: 2px 2px 0 0; cursor: pointer;
+  background: var(--surface-3); transition: all var(--d-fast) var(--ease-out);
+  display: block;
+}
+.comparator i:hover { background: var(--surface-5); }
+.comparator i[data-on="true"] { background: linear-gradient(180deg, var(--redstone-300), var(--redstone-500)); box-shadow: 0 0 6px color-mix(in srgb, var(--danger) 45%, transparent); }
+
+/* ============================================================================
+   Track generator
+   ========================================================================= */
+
+.style-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2);
+}
+@media (max-width: 700px) { .style-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.style-card {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
+  text-align: left; cursor: pointer;
+  transition: all var(--d-fast) var(--ease-out);
+}
+.style-card:hover { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); transform: translateY(-1px); }
+.style-card[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--disc-accent) 12%, var(--bg-sunken));
+  box-shadow: inset 0 0 0 1.5px var(--disc-accent);
+}
+.style-card .sc-icon { color: var(--text-4); transition: color var(--d-fast) var(--ease-out); }
+.style-card[aria-pressed="true"] .sc-icon { color: var(--disc-accent); }
+.style-card .sc-name { font-size: var(--t-13); font-weight: var(--w-semi); color: var(--text-1); }
+.style-card .sc-hint { font-size: var(--t-11); color: var(--text-3); line-height: 1.35; }
+
+.gen-player { display: flex; align-items: center; gap: var(--s-3); }
+
+.gen-wave {
+  position: relative; height: 76px; margin-top: 4px;
+  border-radius: var(--r-md); overflow: hidden;
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
+}
+.gen-wave canvas { width: 100%; height: 100%; image-rendering: auto; }
+.gen-wave .gen-wave-head {
+  position: absolute; top: 0; bottom: 0; left: var(--play, 0%);
+  width: 1.5px; background: var(--text-1);
+  box-shadow: 0 0 8px var(--text-1);
+  opacity: 0; transition: opacity var(--d-fast) var(--ease-out);
+}
+.gen-wave[data-playing="true"] .gen-wave-head { opacity: 1; }
+
+/* ---- Waveform time ruler ------------------------------------------------ */
+.wave-ruler {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--f-mono); font-size: var(--t-10);
+  color: var(--text-4); padding: 0 2px; margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Generated-track chip ----------------------------------------------- */
+.gen-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--t-10); font-weight: var(--w-bold);
+  letter-spacing: var(--tr-wide); text-transform: uppercase;
+  padding: 2px 7px; border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--disc-accent) 18%, transparent);
+  color: var(--disc-accent);
+}
+
+.gen-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(170px, 1.1fr);
+  gap: var(--s-3);
+  align-items: end;
+}
+@media (max-width: 760px) { .gen-controls { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Loot destination chips --------------------------------------------- */
+.loot-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 9px;
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+  box-shadow: var(--bevel-in);
+  font-size: var(--t-11); color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--d-fast) var(--ease-out);
+}
+.loot-chip:hover { color: var(--text-1); background: var(--surface-2); }
+.loot-chip[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg-sunken));
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.loot-chip .dot { background: currentColor; opacity: .55; }

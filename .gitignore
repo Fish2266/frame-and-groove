@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# Local tooling — not part of the site
+.devserver.py
+.claude/
+
+# Nothing here is built, so there is no build output to ignore.

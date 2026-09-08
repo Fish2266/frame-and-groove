@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" data-theme="deepslate">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>Frame &amp; Groove — Minecraft painting &amp; music disc studio</title>
+  <meta name="description" content="Design custom Minecraft paintings, music discs, mob variants and renamed item textures, then export the matching data pack and resource pack. Runs entirely in your browser.">
+  <meta name="theme-color" content="#12161A">
+
+  <!-- Link previews. og:image is left out deliberately: there is no artwork to
+       point at that is ours, and a broken image is worse than none. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Frame &amp; Groove">
+  <meta property="og:description" content="A browser studio for custom Minecraft paintings, music discs, mob variants and renamed item textures. No account, no upload, no build step.">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/disc.css">
+
+  <!-- Replaced at boot by the real pixel mark; this is only what shows in the
+       tab during the first few hundred milliseconds. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%239C7F4E'/%3E%3Crect x='2' y='2' width='12' height='12' fill='%2314161C'/%3E%3Ccircle cx='8' cy='8' r='5' fill='%231E1E26'/%3E%3Ccircle cx='8' cy='8' r='2' fill='%233FD98B'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div id="boot">
+    <div class="boot-inner">
+      <canvas id="boot-mark" class="boot-mark" width="128" height="128"></canvas>
+      <div class="boot-word">Frame <em>&amp;</em> Groove</div>
+      <div class="boot-bar" id="boot-bar" role="progressbar" aria-label="Loading"></div>
+      <div class="boot-tag" id="boot-tag">Starting up</div>
+    </div>
+  </div>
+
+  <noscript>
+    <div style="padding:48px;max-width:520px;margin:0 auto;font-family:system-ui;color:#EEF2F4">
+      <h1>Frame &amp; Groove needs JavaScript</h1>
+      <p>The whole studio — the pixel editor, the audio encoder and the pack writer — runs in your browser.
+         Nothing is uploaded anywhere, but it does need scripting enabled.</p>
+    </div>
+  </noscript>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

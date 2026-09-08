@@ -1,0 +1,776 @@
+{
+ "source": "Read from the installed Minecraft clients: 26.2 and 26.3-snapshot-8.",
+ "note": "Entries carrying \"since\" do not exist in older releases; the app warns if a pack targets a version that predates them.",
+ "biomes": [
+  {
+   "id": "badlands"
+  },
+  {
+   "id": "bamboo_jungle"
+  },
+  {
+   "id": "basalt_deltas"
+  },
+  {
+   "id": "beach"
+  },
+  {
+   "id": "birch_forest"
+  },
+  {
+   "id": "cherry_grove"
+  },
+  {
+   "id": "cold_ocean"
+  },
+  {
+   "id": "crimson_forest"
+  },
+  {
+   "id": "dappled_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "dark_forest"
+  },
+  {
+   "id": "deep_cold_ocean"
+  },
+  {
+   "id": "deep_dark"
+  },
+  {
+   "id": "deep_frozen_ocean"
+  },
+  {
+   "id": "deep_lukewarm_ocean"
+  },
+  {
+   "id": "deep_ocean"
+  },
+  {
+   "id": "desert"
+  },
+  {
+   "id": "dripstone_caves"
+  },
+  {
+   "id": "end_barrens"
+  },
+  {
+   "id": "end_highlands"
+  },
+  {
+   "id": "end_midlands"
+  },
+  {
+   "id": "eroded_badlands"
+  },
+  {
+   "id": "flower_forest"
+  },
+  {
+   "id": "forest"
+  },
+  {
+   "id": "frozen_ocean"
+  },
+  {
+   "id": "frozen_peaks"
+  },
+  {
+   "id": "frozen_river"
+  },
+  {
+   "id": "grove"
+  },
+  {
+   "id": "ice_spikes"
+  },
+  {
+   "id": "jagged_peaks"
+  },
+  {
+   "id": "jungle"
+  },
+  {
+   "id": "lukewarm_ocean"
+  },
+  {
+   "id": "lush_caves"
+  },
+  {
+   "id": "mangrove_swamp"
+  },
+  {
+   "id": "meadow"
+  },
+  {
+   "id": "mushroom_fields"
+  },
+  {
+   "id": "nether_wastes"
+  },
+  {
+   "id": "ocean"
+  },
+  {
+   "id": "old_growth_birch_forest"
+  },
+  {
+   "id": "old_growth_pine_taiga"
+  },
+  {
+   "id": "old_growth_spruce_taiga"
+  },
+  {
+   "id": "pale_garden"
+  },
+  {
+   "id": "plains"
+  },
+  {
+   "id": "river"
+  },
+  {
+   "id": "savanna"
+  },
+  {
+   "id": "savanna_plateau"
+  },
+  {
+   "id": "small_end_islands"
+  },
+  {
+   "id": "snowy_beach"
+  },
+  {
+   "id": "snowy_plains"
+  },
+  {
+   "id": "snowy_slopes"
+  },
+  {
+   "id": "snowy_taiga"
+  },
+  {
+   "id": "soul_sand_valley"
+  },
+  {
+   "id": "sparse_jungle"
+  },
+  {
+   "id": "stony_peaks"
+  },
+  {
+   "id": "stony_shore"
+  },
+  {
+   "id": "sulfur_caves"
+  },
+  {
+   "id": "sunflower_plains"
+  },
+  {
+   "id": "swamp"
+  },
+  {
+   "id": "taiga"
+  },
+  {
+   "id": "the_end"
+  },
+  {
+   "id": "the_void"
+  },
+  {
+   "id": "warm_ocean"
+  },
+  {
+   "id": "warped_forest"
+  },
+  {
+   "id": "windswept_forest"
+  },
+  {
+   "id": "windswept_gravelly_hills"
+  },
+  {
+   "id": "windswept_hills"
+  },
+  {
+   "id": "windswept_savanna"
+  },
+  {
+   "id": "wooded_badlands"
+  }
+ ],
+ "biomeTags": [
+  {
+   "id": "#minecraft:allows_surface_slime_spawns"
+  },
+  {
+   "id": "#minecraft:allows_tropical_fish_spawns_at_any_height"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_bamboo_jungle",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_birch_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_cherry_grove",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_dappled_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_flower_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_meadow",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_old_growth_birch_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_old_growth_pine_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_old_growth_spruce_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_pale_garden",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_savanna",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_snowy_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_sparse_jungle",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_swamp",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_windswept_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/abandoned_camp_wooded_badlands",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:has_structure/ancient_city"
+  },
+  {
+   "id": "#minecraft:has_structure/bastion_remnant"
+  },
+  {
+   "id": "#minecraft:has_structure/buried_treasure"
+  },
+  {
+   "id": "#minecraft:has_structure/desert_pyramid"
+  },
+  {
+   "id": "#minecraft:has_structure/end_city"
+  },
+  {
+   "id": "#minecraft:has_structure/igloo"
+  },
+  {
+   "id": "#minecraft:has_structure/jungle_temple"
+  },
+  {
+   "id": "#minecraft:has_structure/mineshaft"
+  },
+  {
+   "id": "#minecraft:has_structure/mineshaft_mesa"
+  },
+  {
+   "id": "#minecraft:has_structure/nether_fortress"
+  },
+  {
+   "id": "#minecraft:has_structure/nether_fossil"
+  },
+  {
+   "id": "#minecraft:has_structure/ocean_monument"
+  },
+  {
+   "id": "#minecraft:has_structure/ocean_ruin_cold"
+  },
+  {
+   "id": "#minecraft:has_structure/ocean_ruin_warm"
+  },
+  {
+   "id": "#minecraft:has_structure/pillager_outpost"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_desert"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_jungle"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_mountain"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_nether"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_ocean"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_standard"
+  },
+  {
+   "id": "#minecraft:has_structure/ruined_portal_swamp"
+  },
+  {
+   "id": "#minecraft:has_structure/shipwreck"
+  },
+  {
+   "id": "#minecraft:has_structure/shipwreck_beached"
+  },
+  {
+   "id": "#minecraft:has_structure/stronghold"
+  },
+  {
+   "id": "#minecraft:has_structure/swamp_hut"
+  },
+  {
+   "id": "#minecraft:has_structure/trail_ruins"
+  },
+  {
+   "id": "#minecraft:has_structure/trial_chambers"
+  },
+  {
+   "id": "#minecraft:has_structure/village_desert"
+  },
+  {
+   "id": "#minecraft:has_structure/village_plains"
+  },
+  {
+   "id": "#minecraft:has_structure/village_savanna"
+  },
+  {
+   "id": "#minecraft:has_structure/village_snowy"
+  },
+  {
+   "id": "#minecraft:has_structure/village_taiga"
+  },
+  {
+   "id": "#minecraft:has_structure/woodland_mansion"
+  },
+  {
+   "id": "#minecraft:is_badlands"
+  },
+  {
+   "id": "#minecraft:is_beach"
+  },
+  {
+   "id": "#minecraft:is_deep_ocean"
+  },
+  {
+   "id": "#minecraft:is_end"
+  },
+  {
+   "id": "#minecraft:is_forest"
+  },
+  {
+   "id": "#minecraft:is_hill"
+  },
+  {
+   "id": "#minecraft:is_jungle"
+  },
+  {
+   "id": "#minecraft:is_mountain"
+  },
+  {
+   "id": "#minecraft:is_nether"
+  },
+  {
+   "id": "#minecraft:is_ocean"
+  },
+  {
+   "id": "#minecraft:is_overworld"
+  },
+  {
+   "id": "#minecraft:is_river"
+  },
+  {
+   "id": "#minecraft:is_savanna"
+  },
+  {
+   "id": "#minecraft:is_taiga"
+  },
+  {
+   "id": "#minecraft:mineshaft_blocking"
+  },
+  {
+   "id": "#minecraft:more_frequent_drowned_spawns"
+  },
+  {
+   "id": "#minecraft:polar_bears_spawn_on_alternate_blocks"
+  },
+  {
+   "id": "#minecraft:produces_corals_from_bonemeal"
+  },
+  {
+   "id": "#minecraft:reduce_water_ambient_spawns"
+  },
+  {
+   "id": "#minecraft:required_ocean_monument_surrounding"
+  },
+  {
+   "id": "#minecraft:spawns_cold_variant_farm_animals"
+  },
+  {
+   "id": "#minecraft:spawns_cold_variant_frogs"
+  },
+  {
+   "id": "#minecraft:spawns_coral_variant_zombie_nautilus"
+  },
+  {
+   "id": "#minecraft:spawns_gold_rabbits"
+  },
+  {
+   "id": "#minecraft:spawns_snow_foxes"
+  },
+  {
+   "id": "#minecraft:spawns_warm_variant_farm_animals"
+  },
+  {
+   "id": "#minecraft:spawns_warm_variant_frogs"
+  },
+  {
+   "id": "#minecraft:spawns_white_rabbits"
+  },
+  {
+   "id": "#minecraft:stronghold_biased_to"
+  },
+  {
+   "id": "#minecraft:water_on_map_outlines"
+  },
+  {
+   "id": "#minecraft:without_wandering_trader_spawns"
+  },
+  {
+   "id": "#minecraft:without_zombie_sieges"
+  }
+ ],
+ "structures": [
+  {
+   "id": "abandoned_camp_bamboo_jungle",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_birch_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_cherry_grove",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_dappled_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_flower_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_meadow",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_old_growth_birch_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_old_growth_pine_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_old_growth_spruce_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_pale_garden",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_savanna",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_snowy_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_sparse_jungle",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_swamp",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_taiga",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_windswept_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "abandoned_camp_wooded_badlands",
+   "since": "26.3"
+  },
+  {
+   "id": "ancient_city"
+  },
+  {
+   "id": "bastion_remnant"
+  },
+  {
+   "id": "buried_treasure"
+  },
+  {
+   "id": "desert_pyramid"
+  },
+  {
+   "id": "end_city"
+  },
+  {
+   "id": "fortress"
+  },
+  {
+   "id": "igloo"
+  },
+  {
+   "id": "jungle_pyramid"
+  },
+  {
+   "id": "mansion"
+  },
+  {
+   "id": "mineshaft"
+  },
+  {
+   "id": "mineshaft_mesa"
+  },
+  {
+   "id": "monument"
+  },
+  {
+   "id": "nether_fossil"
+  },
+  {
+   "id": "ocean_ruin_cold"
+  },
+  {
+   "id": "ocean_ruin_warm"
+  },
+  {
+   "id": "pillager_outpost"
+  },
+  {
+   "id": "ruined_portal"
+  },
+  {
+   "id": "ruined_portal_desert"
+  },
+  {
+   "id": "ruined_portal_jungle"
+  },
+  {
+   "id": "ruined_portal_mountain"
+  },
+  {
+   "id": "ruined_portal_nether"
+  },
+  {
+   "id": "ruined_portal_ocean"
+  },
+  {
+   "id": "ruined_portal_swamp"
+  },
+  {
+   "id": "shipwreck"
+  },
+  {
+   "id": "shipwreck_beached"
+  },
+  {
+   "id": "stronghold"
+  },
+  {
+   "id": "swamp_hut"
+  },
+  {
+   "id": "trail_ruins"
+  },
+  {
+   "id": "trial_chambers"
+  },
+  {
+   "id": "village_desert"
+  },
+  {
+   "id": "village_plains"
+  },
+  {
+   "id": "village_savanna"
+  },
+  {
+   "id": "village_snowy"
+  },
+  {
+   "id": "village_taiga"
+  }
+ ],
+ "structureTags": [
+  {
+   "id": "#minecraft:abandoned_camp",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:cats_spawn_as_black"
+  },
+  {
+   "id": "#minecraft:cats_spawn_in"
+  },
+  {
+   "id": "#minecraft:dolphin_located"
+  },
+  {
+   "id": "#minecraft:eye_of_ender_located"
+  },
+  {
+   "id": "#minecraft:mineshaft"
+  },
+  {
+   "id": "#minecraft:ocean_ruin"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_bamboo_jungle",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_birch_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_cherry_grove",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_dappled_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_flower_forest",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_pale_garden",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_swamp",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_abandoned_camp_windswept",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_ancient_city_maps",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_desert_pyramid_maps",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_desert_village_maps"
+  },
+  {
+   "id": "#minecraft:on_jungle_explorer_maps"
+  },
+  {
+   "id": "#minecraft:on_mineshaft_maps",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_ocean_explorer_maps"
+  },
+  {
+   "id": "#minecraft:on_ocean_ruin_warm_maps",
+   "since": "26.3"
+  },
+  {
+   "id": "#minecraft:on_plains_village_maps"
+  },
+  {
+   "id": "#minecraft:on_savanna_village_maps"
+  },
+  {
+   "id": "#minecraft:on_snowy_village_maps"
+  },
+  {
+   "id": "#minecraft:on_swamp_explorer_maps"
+  },
+  {
+   "id": "#minecraft:on_taiga_village_maps"
+  },
+  {
+   "id": "#minecraft:on_treasure_maps"
+  },
+  {
+   "id": "#minecraft:on_trial_chambers_maps"
+  },
+  {
+   "id": "#minecraft:on_woodland_explorer_maps"
+  },
+  {
+   "id": "#minecraft:ruined_portal"
+  },
+  {
+   "id": "#minecraft:shipwreck"
+  },
+  {
+   "id": "#minecraft:village"
+  }
+ ]
+}
