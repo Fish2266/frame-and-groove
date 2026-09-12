@@ -1,0 +1,46 @@
+/* ============================================================================
+   FRAME & GROOVE — Bone, the light theme's own adjustments.
+
+   The Bone tokens in tokens.css stay exactly as they are, because that file
+   is shared byte-for-byte with Fish's MC Tools and All The Sounds. This layer
+   sits on top, loaded last, and only ever applies under
+   :root[data-theme="bone"].
+
+   What it fixes: at the stock depth, --bg-sunken is a grey-beige that turns a
+   screen full of inputs, rows and wells into flat mud rather than paper. So
+   the wells come up a step, the grain comes down, the panels that hold
+   something to look at (waveforms, the game link, export targets, format
+   cards) sit on the whitest surface with a real edge, and the rail's pixel
+   icons stop being dimmed to nothing. All The Sounds carries the same pass in
+   css/sounds.css.
+   ========================================================================= */
+
+:root[data-theme="bone"] {
+  --bg-sunken: #E4DFD6;
+  --grain-opacity: 0.03;
+}
+
+/* ---- Panels with content in them: white, with an edge ------------------- */
+:root[data-theme="bone"] .engine-row,
+:root[data-theme="bone"] .export-target,
+:root[data-theme="bone"] .version-card,
+:root[data-theme="bone"] .disc-preview-stack,
+:root[data-theme="bone"] .wave-shell,
+:root[data-theme="bone"] .gen-wave {
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* The trimmed-away part of a waveform is washed out, not darkened, on paper. */
+:root[data-theme="bone"] .wave-shell .w-mask { background: rgba(255, 255, 255, .7); }
+
+/* Meter tracks that were white on white. */
+:root[data-theme="bone"] .level-meter { background: var(--bg-sunken); }
+
+/* ---- Rail ------------------------------------------------------------------
+   The icons are pixel art in their own colours; the dark theme's dimming
+   washes them out to nothing on a light rail. */
+:root[data-theme="bone"] .rail-btn .rb-icon { opacity: .78; filter: saturate(.7); }
+:root[data-theme="bone"] .rail-btn:hover .rb-icon { opacity: .95; filter: saturate(.9); }
+:root[data-theme="bone"] .rail-btn[aria-current="true"] .rb-icon { opacity: 1; filter: none; }
+:root[data-theme="bone"] .rail-btn:disabled .rb-icon { opacity: .3; filter: saturate(0); }

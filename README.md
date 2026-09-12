@@ -355,7 +355,7 @@ entries from the `painting_variant` registry, so they turn up on their own.
 
 ```
 index.html
-css/      tokens · base · components · app · editor · disc
+css/      tokens · base · components · app · editor · disc · bone
 js/
   core/     util dom icons versions db project store texturepack gameassets
   paint/    render frames tools palettes imageimport compose
