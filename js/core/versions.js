@@ -245,6 +245,13 @@ export function versionAtLeast(versionId, otherId) {
   const a = ids.indexOf(versionId), b = ids.indexOf(otherId);
   if (versionId === 'custom') return true;
   if (b < 0) return true;
+  /* A linked jar has no place in the table, so it is placed by the data
+     format it states — otherwise a linked 1.21.5 game would be offered mobs
+     that only arrived in 1.21.11. */
+  if (versionId === 'linked' && linkedVersion) {
+    const have = linkedVersion.data, want = MC_VERSIONS.find(v => v.id === otherId).data;
+    return have[0] > want[0] || (have[0] === want[0] && (have[1] || 0) >= (want[1] || 0));
+  }
   if (a < 0) return true;
   return a >= b;
 }

@@ -17,9 +17,11 @@ import { unzip, textOf, jsonOf } from './zip.js';
 import {
   createProject, createPainting, createDisc, createPixelDoc, createAudio,
   projectFromJSON, PROJECT_FILE, createDiscSprite,
+  createMobVariant, createNamedSprite, SPRITE_SCALES, SPRITE_BASE, docRescale, docClone, nextUniqueId,
 } from '../core/project.js';
 import { MC_VERSIONS, DEFAULT_VERSION, PIXELS_PER_BLOCK } from '../core/versions.js';
 import { uid, slugifyId, slugifyNamespace, titleCase } from '../core/util.js';
+import { MOBS, mobTextureSize } from '../mob/registry.js';
 
 /* ---- Entry point -------------------------------------------------------- */
 /**
@@ -285,10 +287,144 @@ async function reconstruct(files, deps, report) {
     project.discs.push(d);
   }
 
-  if (!project.paintings.length && !project.discs.length) {
-    report.warnings.push('No painting variants or jukebox songs were found in this zip.');
+  /* ---- Mob variants and renamed sprites ---- */
+  await reconstructMobs(files, project, report);
+  await reconstructSprites(files, project, report);
+
+  if (!project.paintings.length && !project.discs.length && !project.mobs.length && !project.sprites.length) {
+    report.warnings.push('No painting variants, jukebox songs, mob variants or renamed sprites were found in this zip.');
   }
   return project;
+}
+
+/* ---- Route 2: mob variants ----------------------------------------------
+   One registry file per variant, in the mob's own folder, naming its textures
+   by asset id. The textures come in at whatever multiple of the model's sheet
+   the pack drew them at; spawn rules and the model come back as written.
+   Custom sounds are the one thing not read back: a sound variant names sound
+   events, and turning those back into clips means guessing at sounds.json. */
+async function reconstructMobs(files, project, report) {
+  const texturePath = ref => {
+    if (!ref || typeof ref !== 'string') return null;
+    const [ns, path] = ref.includes(':') ? ref.split(':') : ['minecraft', ref];
+    return `assets/${ns}/textures/${path}.png`;
+  };
+  for (const mob of Object.values(MOBS)) {
+    const re = new RegExp(`^data/([a-z0-9_.-]+)/${mob.registry}/(.+)\\.json$`);
+    for (const [path, bytes] of files) {
+      const m = path.match(re);
+      if (!m) continue;
+      const entry = jsonOf(bytes);
+      if (!entry) continue;
+      const id = m[2];
+      const refs = mob.assetSet
+        ? { adult: entry.assets || {}, baby: entry.baby_assets || {} }
+        : { adult: { default: entry.asset_id }, baby: { default: entry.baby_asset_id } };
+
+      /* Read every texture first: the adult sheet decides the resolution the
+         variant is drawn at, and every slot is fitted to it. */
+      const docs = {};
+      for (const kind of ['adult', 'baby']) {
+        docs[kind] = {};
+        for (const [slot, ref] of Object.entries(refs[kind])) {
+          const tp = texturePath(ref);
+          if (!tp) continue;
+          const png = files.get(tp);
+          if (!png) {
+            report.warnings.push(`${mob.label} variant "${id}" points at ${ref}, but that texture is not in the pack.`);
+            continue;
+          }
+          docs[kind][slot] = await pngToDoc(png, 0, 0, report, `${id} (${kind})`);
+        }
+      }
+      const firstAdult = Object.values(docs.adult).find(Boolean);
+      const scale = firstAdult ? Math.max(1, Math.round(firstAdult.w / mob.texture[0])) : 1;
+
+      const v = createMobVariant(mob.id, mob, titleCase(id), scale);
+      v.id = nextUniqueId(slugifyId(id, 'variant'), project.mobs.filter(x => x.mob === mob.id).map(x => x.id));
+      if (mob.models && entry.model && mob.models.includes(entry.model)) v.model = entry.model;
+      v.spawns = spawnsFromJSON(entry.spawn_conditions);
+      for (const kind of Object.keys(v.slots)) {
+        const [tw, th] = mobTextureSize(mob, kind);
+        for (const slot of Object.keys(v.slots[kind])) {
+          const doc = docs[kind]?.[slot];
+          if (!doc) continue;
+          if (doc.w !== tw * scale || doc.h !== th * scale) {
+            report.warnings.push(`"${id}" ${kind} texture is ${doc.w}x${doc.h}; it was rescaled to ${tw * scale}x${th * scale} to fit the ${mob.label.toLowerCase()} model.`);
+            docRescale(doc, tw * scale, th * scale);
+          }
+          v.slots[kind][slot].doc = doc;
+        }
+      }
+      if (mob.soundRegistry && files.has(`data/${m[1]}/${mob.soundRegistry}/${id}.json`)) {
+        report.warnings.push(`"${id}" has its own sounds in the pack. The variant came back without them — add the clips again in the Mobs view.`);
+      }
+      project.mobs.push(v);
+    }
+  }
+}
+
+/** A variant's spawn_conditions, back into the editor's rows. */
+function spawnsFromJSON(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map(e => {
+    const c = e?.condition;
+    const row = { type: c?.type || 'none', priority: e?.priority ?? 0, values: [] };
+    if (c?.type === 'minecraft:biome') row.values = [].concat(c.biomes ?? []);
+    else if (c?.type === 'minecraft:structure') row.values = [].concat(c.structures ?? []);
+    else if (c?.type === 'minecraft:moon_brightness') {
+      const r = c.range;
+      if (typeof r === 'number') { row.min = r; row.max = r; }
+      else if (r) { if (r.min != null) row.min = r.min; if (r.max != null) row.max = r.max; }
+    }
+    return row;
+  });
+}
+
+/* ---- Route 2: renamed sprites -------------------------------------------
+   A vanilla item's definition that branches on minecraft:custom_name. Each
+   case is one name; its model points at the sprite's texture. A case may list
+   several names for one model, and each becomes its own sprite. */
+async function reconstructSprites(files, project, report) {
+  const split = (id, ns) => (id.includes(':') ? id.split(':') : [ns, id]);
+  for (const [path, bytes] of files) {
+    const m = path.match(/^assets\/minecraft\/items\/([a-z0-9_.-]+)\.json$/);
+    if (!m) continue;
+    const sel = jsonOf(bytes)?.model;
+    if (sel?.type !== 'minecraft:select' || sel.property !== 'minecraft:component' ||
+        sel.component !== 'minecraft:custom_name') continue;
+    const base = m[1];
+    for (const c of sel.cases || []) {
+      const names = [].concat(c.when ?? []).map(componentText).filter(Boolean);
+      const modelId = c.model?.type === 'minecraft:model' ? c.model.model : null;
+      if (!names.length || !modelId) {
+        report.warnings.push(`A renamed ${base.replace(/_/g, ' ')} case uses a model this tool cannot rebuild, so it was skipped.`);
+        continue;
+      }
+      const [mNs, mPath] = split(modelId, 'minecraft');
+      const model = jsonOf(files.get(`assets/${mNs}/models/${mPath}.json`));
+      const [tNs, tPath] = model?.textures?.layer0 ? split(model.textures.layer0, 'minecraft') : [mNs, mPath];
+      const png = files.get(`assets/${tNs}/textures/${tPath}.png`);
+      if (!png) {
+        report.warnings.push(`The ${base.replace(/_/g, ' ')} named "${names[0]}" points at ${tNs}:${tPath}, but that texture is not in the pack.`);
+        continue;
+      }
+      const doc = await pngToDoc(png, 0, 0, report, names[0]);
+      if (!doc) continue;
+      const scale = SPRITE_SCALES.find(s => s * SPRITE_BASE >= Math.max(doc.w, doc.h)) || SPRITE_SCALES[SPRITE_SCALES.length - 1];
+      const size = scale * SPRITE_BASE;
+      if (doc.w !== size || doc.h !== size) {
+        report.warnings.push(`"${names[0]}" is ${doc.w}x${doc.h}; it was fitted to ${size}x${size}.`);
+        docRescale(doc, size, size);
+      }
+      names.forEach((name, i) => {
+        const sp = createNamedSprite(base, name, scale);
+        sp.id = nextUniqueId(slugifyId(tPath.split('/').pop(), 'sprite'), project.sprites.map(s => s.id));
+        sp.doc = i ? docClone(doc) : doc;
+        project.sprites.push(sp);
+      });
+    }
+  }
 }
 
 /* ---- helpers ------------------------------------------------------------ */

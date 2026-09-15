@@ -19,7 +19,7 @@
    the same sprite and song overrides the /give command uses.
    ========================================================================= */
 
-import { getVersion, FEATURES, registryDir } from '../core/versions.js';
+import { getVersion, FEATURES, registryDir, MC_COLORS } from '../core/versions.js';
 import { gameData, hasGameData, listGameData } from '../core/gameassets.js';
 
 /** Chest tables worth offering, with the ones vanilla already puts discs in
@@ -76,12 +76,22 @@ export function discLootEntry(project, disc, { weight } = {}) {
   const components = {};
 
   if (v.features.includes(FEATURES.ITEM_MODEL)) components['minecraft:item_model'] = `${ns}:${disc.id}`;
-  components['minecraft:jukebox_playable'] = modern ? `${ns}:${disc.id}` : { song: `${ns}:${disc.id}` };
+  components['minecraft:jukebox_playable'] = modern
+    ? `${ns}:${disc.id}`
+    : { song: `${ns}:${disc.id}`, ...(disc.hideSongTooltip ? { show_in_tooltip: false } : {}) };
   if (disc.name?.trim()) {
-    components['minecraft:item_name'] = { text: disc.name, italic: false, ...(disc.nameColor ? { color: disc.nameColor } : {}) };
+    const color = MC_COLORS.some(c => c.id === disc.nameColor) ? disc.nameColor : null;
+    const name = { text: disc.name, ...(color ? { color } : {}), italic: false };
+    /* Before 1.21.5 an item's text components were stringified JSON — the
+       same reason the /give line quotes them — and a loot table that hands
+       over an object instead fails to load. From 1.21.5 they are objects. */
+    components['minecraft:item_name'] = modern ? name : JSON.stringify(name);
   }
   if (disc.rarity && disc.rarity !== 'common') components['minecraft:rarity'] = disc.rarity;
   if (disc.glint) components['minecraft:enchantment_glint_override'] = true;
+  if (modern && disc.hideSongTooltip) {
+    components['minecraft:tooltip_display'] = { hidden_components: ['minecraft:jukebox_playable'] };
+  }
 
   const entry = {
     type: 'minecraft:item',

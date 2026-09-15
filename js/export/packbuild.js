@@ -119,9 +119,12 @@ export function buildDataPackFiles(project) {
       const len = Math.max(0.1, audioClipLength(d.audio));
       const soundEvent = { sound_id: nsId(ns, soundEventName(d.id)) };
       if (d.range && d.range !== 16) soundEvent.range = Number(d.range);
+      const artist = d.artist?.trim();
       const entry = {
         sound_event: soundEvent,
-        description: { translate: `jukebox_song.${ns}.${d.id}` },
+        /* The fallback is what shows when the resource pack is not installed —
+           a server running only the data pack — instead of the raw key. */
+        description: { translate: `jukebox_song.${ns}.${d.id}`, fallback: artist ? `${artist} - ${d.name}` : (d.name || d.id) },
         length_in_seconds: Math.round(len * 100) / 100,
         comparator_output: Math.max(0, Math.min(15, d.comparatorOutput | 0)),
       };

@@ -9,8 +9,12 @@
           v   +----+--------+--------+
               |    |   up   |  down  |
         v+d   +----+--------+--------+--------+
-              |east| north  |  west  | south  |
+              |west| north  |  east  | south  |
       v+d+h   +----+--------+--------+--------+
+
+   West is -X, the mob's own right side — the side its right legs are on. The
+   strip runs west, north, east, south: all the way round the box, with each
+   face read left to right as it is seen from outside.
 
    Both the 3D view and the flat projection view read from here, so a face can
    never mean one thing in one view and something else in the other.
@@ -33,9 +37,9 @@ export function boxUV(cube) {
   const faces = {
     up:    rect(u + d, v, w, d),
     down:  rect(u + d + w, v, w, d),
-    east:  rect(u, v + d, d, h),
+    west:  rect(u, v + d, d, h),
     north: rect(u + d, v + d, w, h),
-    west:  rect(u + d + w, v + d, d, h),
+    east:  rect(u + d + w, v + d, d, h),
     south: rect(u + d + w + d, v + d, w, h),
   };
   if (cube.mirror) {
@@ -46,54 +50,62 @@ export function boxUV(cube) {
   return faces;
 }
 
-/* Unit-cube corners, indexed so each face lists its four in winding order.
-   Y runs downward, matching Minecraft's model space. */
-const CORNERS = {
-  //        0:(0,0,0) 1:(1,0,0) 2:(1,1,0) 3:(0,1,0) 4:(0,0,1) 5:(1,0,1) 6:(1,1,1) 7:(0,1,1)
-  east:  [5, 1, 2, 6],   // +X
-  west:  [0, 4, 7, 3],   // -X
-  up:    [0, 1, 5, 4],   // -Y (top, because Y grows downward)
-  down:  [7, 6, 2, 3],   // +Y
-  north: [1, 0, 3, 2],   // -Z
-  south: [4, 5, 6, 7],   // +Z
-};
-
-const UNIT = [
-  [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0],
-  [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1],
-];
-
 /**
  * Expand one cube into six textured quads in model space.
  * `inflate` grows the box evenly on all sides, matching CubeDeformation.
+ *
+ * The corners, the order they go round each face, and the texture corner each
+ * one takes are copied from the client's ModelPart.Cube rather than derived.
+ * Deriving them had put the west strip on the east side and hung every front
+ * and back face the wrong way round — invisible on a symmetric cow, but a
+ * spot painted on its right cheek went into the game on its left.
  */
 export function cubeQuads(cube, inflate = 0) {
   const [fx, fy, fz] = cube.from;
   const [sx, sy, sz] = cube.size;
-  const lo = [fx - inflate, fy - inflate, fz - inflate];
-  const hi = [fx + sx + inflate, fy + sy + inflate, fz + sz + inflate];
-  const uv = boxUV(cube);
+  let x0 = fx - inflate, x1 = fx + sx + inflate;
+  const y0 = fy - inflate, y1 = fy + sy + inflate;
+  const z0 = fz - inflate, z1 = fz + sz + inflate;
+  // mirror() swaps the box's two x extents; the faces below then land on the
+  // opposite sides with their pixels flipped, exactly as the client does it.
+  if (cube.mirror) [x0, x1] = [x1, x0];
+
+  // The client's eight corners, named as it names them. Y runs downward.
+  const v7 = [x0, y0, z0], v = [x1, y0, z0], v1 = [x1, y1, z0], v2 = [x0, y1, z0];
+  const v3 = [x0, y0, z1], v4 = [x1, y0, z1], v5 = [x1, y1, z1], v6 = [x0, y1, z1];
+
+  // The unmirrored layout: mirroring is done with the corners, not the atlas.
+  const uv = boxUV({ ...cube, mirror: false });
+  // Polygon(verts, u1, v1, u2, v2) gives its corners (u2,v1) (u1,v1) (u1,v2)
+  // (u2,v2). Every face runs from its top edge except the underside.
+  const topFirst = r => [[r.x + r.w, r.y], [r.x, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]];
+  const bottomFirst = r => [[r.x + r.w, r.y + r.h], [r.x, r.y + r.h], [r.x, r.y], [r.x + r.w, r.y]];
+
+  const faces = {
+    up:    { pos: [v4, v3, v7, v],  uvs: topFirst(uv.up) },      // -Y, the top
+    down:  { pos: [v1, v2, v6, v5], uvs: bottomFirst(uv.down) }, // +Y, the underside
+    west:  { pos: [v7, v3, v6, v2], uvs: topFirst(uv.west) },    // -X
+    north: { pos: [v, v7, v2, v1],  uvs: topFirst(uv.north) },   // -Z, the front
+    east:  { pos: [v4, v, v1, v5],  uvs: topFirst(uv.east) },    // +X
+    south: { pos: [v3, v4, v5, v6], uvs: topFirst(uv.south) },   // +Z
+  };
+
   const out = [];
   for (const face of FACES) {
     const r = uv[face];
     // A zero-size box (the frog's tongue and feet) still has two real faces;
     // the four degenerate ones are dropped rather than drawn as slivers.
     if (r.w <= 0 || r.h <= 0) continue;
-    const idx = CORNERS[face];
-    const pos = idx.map(i => {
-      const c = UNIT[i];
-      return [c[0] ? hi[0] : lo[0], c[1] ? hi[1] : lo[1], c[2] ? hi[2] : lo[2]];
-    });
-    // UVs run in the same winding as the corners: top-left, top-right,
-    // bottom-right, bottom-left of the face rectangle.
-    let uvs = [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]];
-    if (face === 'up' || face === 'down') {
-      uvs = [[r.x, r.y + r.h], [r.x + r.w, r.y + r.h], [r.x + r.w, r.y], [r.x, r.y]];
+    let { pos, uvs } = faces[face];
+    let side = face;
+    if (cube.mirror) {
+      // Swapping x turned the face inside out; reversing its corners turns it
+      // back, and the two side strips have traded places.
+      pos = [...pos].reverse();
+      uvs = [...uvs].reverse();
+      side = face === 'west' ? 'east' : face === 'east' ? 'west' : face;
     }
-    if (cube.mirror && (face === 'north' || face === 'south' || face === 'up' || face === 'down')) {
-      uvs = [uvs[1], uvs[0], uvs[3], uvs[2]];
-    }
-    out.push({ face, pos, uvs, light: FACE_LIGHT[face] });
+    out.push({ face: side, pos, uvs, light: FACE_LIGHT[side] });
   }
   return out;
 }
